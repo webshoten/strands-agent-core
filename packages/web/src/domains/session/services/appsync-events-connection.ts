@@ -33,7 +33,7 @@ export function openAppSyncEvents(
     `${scheme}://${location.host}${config.appSyncRealtimePath}`,
     [
       protocol,
-      "aws-appsync-event-ws", /**  AppSync EventsのWebSocketプロトコルを使用する宣言 */
+      "aws-appsync-event-ws" /**  AppSync EventsのWebSocketプロトコルを使用する宣言 */,
     ],
   );
 
@@ -73,8 +73,8 @@ export function openAppSyncEvents(
 
     // appSyncからtype=***_errorが送られてくる場合
     if (message.type?.endsWith("_error")) {
-      const detail = message.errors?.[0]?.message ??
-        "WebSocket authorization failed";
+      const detail =
+        message.errors?.[0]?.message ?? "WebSocket authorization failed";
       fail(new Error(detail));
     }
   }

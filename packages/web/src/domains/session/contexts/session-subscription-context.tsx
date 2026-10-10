@@ -2,23 +2,42 @@ import type { SessionEvent } from "@strands/shared";
 import {
   createContext,
   type PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
   useRef,
 } from "react";
-import { useAppSyncEvents } from "@/app/contexts/appsync-events-context.tsx";
+import { useAppSyncConnection } from "@/app/contexts/appsync-connection-context.tsx";
 import { useConfig } from "@/app/contexts/config-context.tsx";
-import {
-  createSessionSubscription,
-  type SessionSubscription,
-} from "@/domains/session/services/session-events-subscription.ts";
+
+type SubscriptionMessage =
+  | {
+      id: string;
+      type: "subscribe_success";
+    }
+  | {
+      id: string;
+      type: "subscribe_error";
+      errors?: Array<{ message?: string }>;
+    }
+  | {
+      id: string;
+      type: "data";
+      event?: string[];
+    };
+
+type ActiveSubscription = {
+  id: string;
+  messageHandler: (event: MessageEvent<string>) => void;
+  socket: WebSocket;
+};
 
 type SessionSubscriptionContextValue = {
-  subscribeToSession: (
+  subscribe: (
     sessionId: string,
     onEvent: (event: SessionEvent) => void,
   ) => Promise<void>;
-  unsubscribeFromSession: () => void;
+  unsubscribe: () => void;
 };
 
 const SessionSubscriptionContext = createContext<
@@ -28,49 +47,105 @@ const SessionSubscriptionContext = createContext<
 /** 現在のセッション購読を所有する。 */
 export function SessionSubscriptionProvider({ children }: PropsWithChildren) {
   const config = useConfig();
-  const { socket } = useAppSyncEvents();
-  const activeSubscription = useRef<SessionSubscription | undefined>(undefined);
+  const { socket } = useAppSyncConnection();
+  const activeSubscription = useRef<ActiveSubscription | undefined>(undefined);
 
-  function unsubscribeFromSession() {
-    activeSubscription.current?.unsubscribe();
+  const unsubscribe = useCallback(() => {
+    const subscription = activeSubscription.current;
+    if (!subscription) {
+      return;
+    }
+
+    subscription.socket.removeEventListener(
+      "message",
+      subscription.messageHandler,
+    );
+
+    if (subscription.socket.readyState === WebSocket.OPEN) {
+      subscription.socket.send(
+        JSON.stringify({ type: "unsubscribe", id: subscription.id }),
+      );
+    }
+
     activeSubscription.current = undefined;
-  }
+  }, []);
 
-  async function subscribeToSession(
+  async function subscribe(
     sessionId: string,
     onEvent: (event: SessionEvent) => void,
   ) {
     if (!socket) {
       throw new Error("AppSync Events is not connected");
     }
+    const connectedSocket = socket;
 
-    unsubscribeFromSession();
-    const subscription = createSessionSubscription(
-      socket,
-      config,
-      sessionId,
-      onEvent,
-    );
-    activeSubscription.current = subscription;
+    unsubscribe();
+    const subscriptionId = crypto.randomUUID();
+
+    const subscriptionReady = new Promise<void>((resolve, reject) => {
+      function handleMessage(messageEvent: MessageEvent<string>) {
+        const message = JSON.parse(messageEvent.data) as SubscriptionMessage;
+
+        if (message.id !== subscriptionId) {
+          return;
+        }
+
+        switch (message.type) {
+          case "subscribe_success":
+            resolve();
+            break;
+
+          case "subscribe_error": {
+            connectedSocket.removeEventListener("message", handleMessage);
+            const detail =
+              message.errors?.[0]?.message ?? "AppSync subscription failed";
+            reject(new Error(detail));
+            break;
+          }
+
+          case "data":
+            for (const serializedEvent of message.event ?? []) {
+              onEvent(JSON.parse(serializedEvent) as SessionEvent);
+            }
+            break;
+        }
+      }
+
+      activeSubscription.current = {
+        id: subscriptionId,
+        messageHandler: handleMessage,
+        socket: connectedSocket,
+      };
+
+      connectedSocket.addEventListener("message", handleMessage);
+      connectedSocket.send(
+        JSON.stringify({
+          type: "subscribe",
+          id: subscriptionId,
+          channel: `/sessions/${sessionId}`,
+          authorization: {
+            authorization: config.lambdaAuthorizationToken,
+          },
+        }),
+      );
+    });
 
     try {
-      await subscription.ready;
+      await subscriptionReady;
     } catch (error) {
-      activeSubscription.current = undefined;
+      unsubscribe();
       throw error;
     }
   }
 
   useEffect(() => {
     return () => {
-      activeSubscription.current?.unsubscribe();
+      unsubscribe();
     };
-  }, []);
+  }, [unsubscribe]);
 
   return (
-    <SessionSubscriptionContext.Provider
-      value={{ subscribeToSession, unsubscribeFromSession }}
-    >
+    <SessionSubscriptionContext.Provider value={{ subscribe, unsubscribe }}>
       {children}
     </SessionSubscriptionContext.Provider>
   );

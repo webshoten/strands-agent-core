@@ -1,7 +1,11 @@
 export type WebConfig = {
   appSyncHttpHost: string;
   appSyncRealtimePath: string;
+  awsRegion: string;
+  eventApiHttpEndpoint: string;
   lambdaAuthorizationToken: string;
+  userPoolId: string;
+  webUserPoolClientId: string;
 };
 
 declare global {

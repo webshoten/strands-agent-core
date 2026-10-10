@@ -1,35 +1,57 @@
-import { useAppSyncEvents } from "@/app/contexts/appsync-events-context.tsx";
+import { useAppSyncConnection } from "@/app/contexts/appsync-connection-context.tsx";
+import { useConfig } from "@/app/contexts/config-context.tsx";
 import { SessionConsole } from "@/domains/session/components/session-console.tsx";
 import { SessionHeader } from "@/domains/session/components/session-header.tsx";
-import { useSession } from "@/domains/session/contexts/session-context.tsx";
+import { useSessionSubscription } from "@/domains/session/contexts/session-subscription-context.tsx";
+import { useSession } from "@/domains/session/hooks/use-session.ts";
+import { publishStartEvent } from "@/domains/session/services/start-event-publisher.ts";
 
 /** 第1 MVPのセッション開始画面を表示する。 */
 export function SessionPage() {
-  const { connectionState, error: connectionError } = useAppSyncEvents();
+  const config = useConfig();
 
   const {
-    completed,
-    error: sessionError,
-    messages,
-    sessionId,
-    sessionRunning,
-    startSession,
-  } = useSession();
+    connectionState,
+    error: connectionError,
+    socket,
+  } = useAppSyncConnection();
 
-  const error = sessionError ?? connectionError;
+  const { subscribe, unsubscribe } = useSessionSubscription();
+
+  const session = useSession();
+
+  async function handleStart() {
+    if (!socket) {
+      session.fail("AppSync Events is not connected");
+      return;
+    }
+
+    const sessionId = crypto.randomUUID();
+    session.start(sessionId);
+
+    try {
+      await subscribe(sessionId, session.receiveEvent);
+      await publishStartEvent(socket, config, { type: "start", sessionId });
+    } catch (error) {
+      unsubscribe();
+      session.fail(error);
+    }
+  }
+
+  const error = session.error ?? connectionError;
 
   return (
     <main className="page-shell">
       <SessionHeader
         connectionState={connectionState}
-        sessionRunning={sessionRunning}
-        onStart={() => void startSession()}
+        sessionRunning={session.sessionRunning}
+        onStart={() => void handleStart()}
       />
       <SessionConsole
-        completed={completed}
+        completed={session.completed}
         error={error}
-        messages={messages}
-        sessionId={sessionId}
+        messages={session.messages}
+        sessionId={session.sessionId}
       />
     </main>
   );

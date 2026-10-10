@@ -1,7 +1,11 @@
 export type WebRuntimeConfig = {
   appSyncHttpHost: string;
   appSyncRealtimePath: string;
+  awsRegion: string;
+  eventApiHttpEndpoint: string;
   lambdaAuthorizationToken: string;
+  userPoolId: string;
+  webUserPoolClientId: string;
 };
 
 /** Reactが起動時に読み込むconfig.jsを生成する。 */

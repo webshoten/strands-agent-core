@@ -28,11 +28,9 @@ export async function handler(
 
   let actualOriginVerifyValue: string | undefined;
 
-  for (
-    const [headerName, headerValue] of Object.entries(
-      event.requestHeaders ?? {},
-    )
-  ) {
+  for (const [headerName, headerValue] of Object.entries(
+    event.requestHeaders ?? {},
+  )) {
     if (headerName.toLowerCase() === "x-origin-verify") {
       actualOriginVerifyValue = headerValue;
       break;

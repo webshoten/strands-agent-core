@@ -11,18 +11,18 @@ import {
   openAppSyncEvents,
 } from "@/domains/session/services/appsync-events-connection.ts";
 
-type AppSyncEventsContextValue = {
+type AppSyncConnectionContextValue = {
   connectionState: ConnectionState;
   error: string | undefined;
   socket: WebSocket | undefined;
 };
 
-const AppSyncEventsContext = createContext<
-  AppSyncEventsContextValue | undefined
+const AppSyncConnectionContext = createContext<
+  AppSyncConnectionContextValue | undefined
 >(undefined);
 
 /** AppSync EventsのWebSocket接続をアプリ全体で共有する。 */
-export function AppSyncEventsProvider({ children }: PropsWithChildren) {
+export function AppSyncConnectionProvider({ children }: PropsWithChildren) {
   const config = useConfig();
   const [socket, setSocket] = useState<WebSocket>();
   const [connectionState, setConnectionState] =
@@ -53,17 +53,19 @@ export function AppSyncEventsProvider({ children }: PropsWithChildren) {
   }, [config]);
 
   return (
-    <AppSyncEventsContext.Provider value={{ connectionState, error, socket }}>
+    <AppSyncConnectionContext.Provider
+      value={{ connectionState, error, socket }}
+    >
       {children}
-    </AppSyncEventsContext.Provider>
+    </AppSyncConnectionContext.Provider>
   );
 }
 
 /** 共有しているAppSync Events接続を取得する。 */
-export function useAppSyncEvents(): AppSyncEventsContextValue {
-  const context = useContext(AppSyncEventsContext);
+export function useAppSyncConnection(): AppSyncConnectionContextValue {
+  const context = useContext(AppSyncConnectionContext);
   if (!context) {
-    throw new Error("AppSyncEventsProvider is required");
+    throw new Error("AppSyncConnectionProvider is required");
   }
   return context;
 }
