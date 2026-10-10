@@ -1,17 +1,14 @@
-import {
-  createContext,
-  type PropsWithChildren,
-  useContext,
-  useState,
-} from "react";
-import { getWebConfig, type WebConfig } from "@/app/config.ts";
+import { createContext, type PropsWithChildren, useContext } from "react";
+import type { WebConfig } from "@/app/config.ts";
+
+type ConfigProviderProps = PropsWithChildren<{
+  config: WebConfig;
+}>;
 
 const ConfigContext = createContext<WebConfig | undefined>(undefined);
 
 /** アプリ全体へ実行時設定を提供する。 */
-export function ConfigProvider({ children }: PropsWithChildren) {
-  const [config] = useState(getWebConfig);
-
+export function ConfigProvider({ children, config }: ConfigProviderProps) {
   return (
     <ConfigContext.Provider value={config}>{children}</ConfigContext.Provider>
   );

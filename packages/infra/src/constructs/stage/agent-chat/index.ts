@@ -33,12 +33,9 @@ export class AgentChat extends Construct {
 
     const eventApiHttpEndpoint = `https://${realtime.eventApi.httpDns}/event`;
     const web = new Web(this, "Web", {
-      appSyncHttpHost: realtime.eventApi.httpDns,
-      appSyncRealtimeDns: realtime.eventApi.realtimeDns,
       awsRegion: props.awsRegion,
       basicAuthValue: props.basicAuthValue,
       eventApiHttpEndpoint,
-      originVerifyValue: realtime.originVerifyValue,
       userPoolId: auth.userPool.userPoolId,
       webUserPoolClientId: auth.webUserPoolClient.userPoolClientId,
     });

@@ -16,29 +16,6 @@ const sharedBundling: nodejs.BundlingOptions = {
   target: "node22",
 };
 
-export type CreateAuthorizerFunctionInput = {
-  originVerifyValue: string;
-};
-
-/** AppSyncへ到達した接続がCloudFront経由か確認するLambdaを作成する。 */
-export function createAuthorizerFunction(
-  scope: Construct,
-  input: CreateAuthorizerFunctionInput,
-): nodejs.NodejsFunction {
-  return new nodejs.NodejsFunction(scope, "AppSyncAuthorizerFunction", {
-    bundling: sharedBundling,
-    depsLockFilePath: lockFilePath,
-    entry: path.join(functionsRoot, "src/authorizer.ts"),
-    environment: {
-      ORIGIN_VERIFY_VALUE: input.originVerifyValue,
-    },
-    handler: "handler",
-    projectRoot,
-    runtime: lambda.Runtime.NODEJS_22_X,
-    timeout: Duration.seconds(3),
-  });
-}
-
 export type CreateStartAgentFunctionInput = {
   agentRuntimeArn: string;
 };

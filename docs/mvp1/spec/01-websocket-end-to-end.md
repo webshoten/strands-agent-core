@@ -13,16 +13,15 @@
 - 処理開始：AWS Lambda
 - エージェント実行環境：Bedrock AgentCore Runtime
 - AgentCoreアプリケーション：Python、AgentCore SDK、Strands Agents
-- 認証：CloudFront FunctionによるBasic認証、AppSync Lambda Authorizer
+- 認証：CloudFront FunctionによるBasic認証、Cognito User Pool
 
 ## AWS構成
 
-- CloudFrontはReactの静的ファイルとAppSync EventsへのWebSocket接続を同じドメインで受け付ける。
-- `/event/realtime`はAppSync Eventsへ転送する。
-- その他のパスは非公開S3へ転送する。
+- CloudFrontは非公開S3に保存したReactの静的ファイルを配信する。
 - CloudFront Functionは各リクエストのBasic認証を行う。
-- CloudFrontはAppSync向けリクエストへオリジン確認用ヘッダーを付与する。
-- AppSync Lambda Authorizerはオリジン確認用ヘッダーを検証する。
+- Cognito User PoolはReactのユーザーを認証する。
+- ReactはAmplifyを使用し、Cognito認証でAppSync Eventsへ直接接続する。
+- AppSync EventsはCognitoのJWTを検証する。
 - AgentCoreからAppSyncへのイベント発行にはIAM認証を使用する。
 
 ## チャネル
@@ -34,9 +33,9 @@
 
 1. ブラウザがCloudFrontへアクセスし、Basic認証を行う。
 2. CloudFrontがS3からReactを配信する。
-3. ReactがCloudFront経由でAppSync EventsへWebSocket接続する。
-4. Reactが`/sessions/{sessionId}`を購読する。
-5. Reactが`/commands/{sessionId}`へ開始イベントを送る。
+3. ReactがCognitoへログインする。
+4. ReactがCognito認証でAppSync Eventsの`/sessions/{sessionId}`をWebSocket購読する。
+5. ReactがCognito認証で`/commands/{sessionId}`へ開始イベントをHTTP送信する。
 6. AppSync Eventsが開始Lambdaを非同期で呼び出す。
 7. 開始Lambdaが`sessionId`を指定してAgentCore Runtimeを呼び出す。
 8. AgentCore上のPythonアプリケーションがバックグラウンド処理を開始する。
@@ -80,8 +79,8 @@
 
 ## フロントエンド
 
-- Basic認証後にMVP画面を表示する。
-- 接続状態を表示する。
+- Basic認証後にCognitoのログイン画面を表示する。
+- Cognitoへのログイン後にMVP画面を表示する。
 - 開始ボタンで新しい`sessionId`を生成する。
 - 受信した`Hello World`を受信順に表示する。
 - 完了イベントの受信後に完了状態を表示する。
@@ -89,23 +88,21 @@
 ## MVP2へ引き継ぐ項目
 
 - React、Lambda想定サーバー、AgentCore想定サーバーによるローカル一連実行
-- Cognitoを使用したユーザー認証
-- ReactによるCognitoログインとJWT取得
-- AppSync Eventsに対するCognito認証での送信と購読
 
 ## 完了条件
 
 - CDKでAWSリソース一式をデプロイできる。
 - CloudFrontのURLからReact画面を表示できる。
-- Basic認証がReact配信とWebSocket接続に適用される。
+- Basic認証がReact配信に適用される。
+- CognitoのユーザーがReactへログインできる。
+- Cognito認証を使用してAppSync Eventsへ送信・購読できる。
 - 開始ボタンからAgentCore Runtimeまで処理が到達する。
 - 複数件の`Hello World`と完了イベントがWebSocketで画面へ届く。
-- AppSyncの標準エンドポイントへの直接接続がLambda Authorizerで拒否される。
 
 ## 実装配置
 
 - `packages/infra`：AWS CDK
 - `packages/web`：React
-- `packages/functions`：開始Lambda、Lambda Authorizer
+- `packages/functions`：開始Lambda
 - `packages/shared`：イベント型
 - `packages/agentcore`：Python、AgentCore SDK、Strands Agents

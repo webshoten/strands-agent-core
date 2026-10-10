@@ -4,13 +4,11 @@ import type * as s3 from "aws-cdk-lib/aws-s3";
 import type { Construct } from "constructs";
 
 export type CreateWebDistributionInput = {
-  appSyncRealtimeDns: string;
   basicAuthFunction: cloudfront.Function;
   bucket: s3.Bucket;
-  originVerifyValue: string;
 };
 
-/** S3のReact配信とAppSync EventsのWebSocketを一つの入口へまとめる。 */
+/** S3のReactをCloudFrontから配信する。 */
 export function createWebDistribution(
   scope: Construct,
   input: CreateWebDistributionInput,
@@ -21,23 +19,6 @@ export function createWebDistribution(
   };
 
   return new cloudfront.Distribution(scope, "Distribution", {
-    additionalBehaviors: {
-      "event/realtime": {
-        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-        compress: false,
-        functionAssociations: [basicAuthAssociation],
-        origin: new origins.HttpOrigin(input.appSyncRealtimeDns, {
-          customHeaders: {
-            "x-origin-verify": input.originVerifyValue,
-          },
-          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
-        }),
-        originRequestPolicy:
-          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-      },
-    },
     defaultBehavior: {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       functionAssociations: [basicAuthAssociation],

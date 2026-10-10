@@ -1,4 +1,5 @@
 import type { SessionEvent } from "@strands/shared";
+import { type EventsChannel, events } from "aws-amplify/data";
 import {
   createContext,
   type PropsWithChildren,
@@ -7,35 +8,16 @@ import {
   useEffect,
   useRef,
 } from "react";
-import { useAppSyncConnection } from "@/app/contexts/appsync-connection-context.tsx";
-import { useConfig } from "@/app/contexts/config-context.tsx";
 
-type SubscriptionMessage =
-  | {
-      id: string;
-      type: "subscribe_success";
-    }
-  | {
-      id: string;
-      type: "subscribe_error";
-      errors?: Array<{ message?: string }>;
-    }
-  | {
-      id: string;
-      type: "data";
-      event?: string[];
-    };
-
-type ActiveSubscription = {
-  id: string;
-  messageHandler: (event: MessageEvent<string>) => void;
-  socket: WebSocket;
+type SubscriptionData = {
+  event: SessionEvent;
 };
 
 type SessionSubscriptionContextValue = {
   subscribe: (
     sessionId: string,
     onEvent: (event: SessionEvent) => void,
+    onError: (error: unknown) => void,
   ) => Promise<void>;
   unsubscribe: () => void;
 };
@@ -46,94 +28,40 @@ const SessionSubscriptionContext = createContext<
 
 /** 現在のセッション購読を所有する。 */
 export function SessionSubscriptionProvider({ children }: PropsWithChildren) {
-  const config = useConfig();
-  const { socket } = useAppSyncConnection();
-  const activeSubscription = useRef<ActiveSubscription | undefined>(undefined);
+  const activeChannel = useRef<EventsChannel | undefined>(undefined);
 
   const unsubscribe = useCallback(() => {
-    const subscription = activeSubscription.current;
-    if (!subscription) {
+    const channel = activeChannel.current;
+    if (!channel) {
       return;
     }
 
-    subscription.socket.removeEventListener(
-      "message",
-      subscription.messageHandler,
-    );
-
-    if (subscription.socket.readyState === WebSocket.OPEN) {
-      subscription.socket.send(
-        JSON.stringify({ type: "unsubscribe", id: subscription.id }),
-      );
-    }
-
-    activeSubscription.current = undefined;
+    activeChannel.current = undefined;
+    channel.close();
   }, []);
 
   async function subscribe(
     sessionId: string,
     onEvent: (event: SessionEvent) => void,
+    onError: (error: unknown) => void,
   ) {
-    if (!socket) {
-      throw new Error("AppSync Events is not connected");
-    }
-    const connectedSocket = socket;
-
     unsubscribe();
-    const subscriptionId = crypto.randomUUID();
+    const channel = await events.connect(`/sessions/${sessionId}`);
+    activeChannel.current = channel;
 
-    const subscriptionReady = new Promise<void>((resolve, reject) => {
-      function handleMessage(messageEvent: MessageEvent<string>) {
-        const message = JSON.parse(messageEvent.data) as SubscriptionMessage;
-
-        if (message.id !== subscriptionId) {
-          return;
-        }
-
-        switch (message.type) {
-          case "subscribe_success":
-            resolve();
-            break;
-
-          case "subscribe_error": {
-            connectedSocket.removeEventListener("message", handleMessage);
-            const detail =
-              message.errors?.[0]?.message ?? "AppSync subscription failed";
-            reject(new Error(detail));
-            break;
-          }
-
-          case "data":
-            for (const serializedEvent of message.event ?? []) {
-              onEvent(JSON.parse(serializedEvent) as SessionEvent);
-            }
-            break;
-        }
-      }
-
-      activeSubscription.current = {
-        id: subscriptionId,
-        messageHandler: handleMessage,
-        socket: connectedSocket,
-      };
-
-      connectedSocket.addEventListener("message", handleMessage);
-      connectedSocket.send(
-        JSON.stringify({
-          type: "subscribe",
-          id: subscriptionId,
-          channel: `/sessions/${sessionId}`,
-          authorization: {
-            authorization: config.lambdaAuthorizationToken,
-          },
-        }),
-      );
+    const subscription = channel.subscribe({
+      next: (data: SubscriptionData) => {
+        onEvent(data.event);
+      },
+      error: onError,
     });
 
     try {
-      await subscriptionReady;
+      await subscription.ready;
     } catch (error) {
-      unsubscribe();
+      if (activeChannel.current === channel) {
+        unsubscribe();
+      }
       throw error;
     }
   }

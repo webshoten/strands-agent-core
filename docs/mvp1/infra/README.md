@@ -1,6 +1,6 @@
 # 第1 MVPのAWS実行構成
 
-CloudFrontをブラウザからの入口とし、Reactの配信とAppSync EventsへのWebSocket接続を同じドメインで受け付ける。開始LambdaがAgentCore Runtimeを起動し、AgentCore上のPython／Strands処理がAppSync Eventsを通じて結果をReactへ配信する。
+CloudFrontからReactを配信し、CognitoでログインしたReactがAppSync Eventsへ直接接続する。開始LambdaがAgentCore Runtimeを起動し、AgentCore上のPython／Strands処理がAppSync Eventsを通じて結果をReactへ配信する。
 
 - 編集用：[アーキテクチャ図（draw.io）](strands-appsync-agentcore.drawio)
 - 閲覧用：[アーキテクチャ図（SVG）](strands-appsync-agentcore.svg)
@@ -12,11 +12,11 @@ CloudFrontをブラウザからの入口とし、Reactの配信とAppSync Events
 ## 構成
 
 - React：開始操作、セッションチャネルの購読、受信イベントの表示
-- CloudFront：React配信と`/event/realtime`の振り分け
+- CloudFront：Reactの静的ファイル配信
 - CloudFront Function：Basic認証
 - 非公開S3：Reactの静的ファイル保存
+- Cognito User Pool：Reactのユーザー認証
 - AppSync Events：開始イベントの受付とWebSocket配信
-- Lambda Authorizer：CloudFrontから付与されたオリジン確認用ヘッダーの検証
 - 開始Lambda：AgentCore Runtimeの非同期起動
 - AgentCore Runtime：Python／Strands処理の実行
 
@@ -24,19 +24,19 @@ CloudFrontをブラウザからの入口とし、Reactの配信とAppSync Events
 
 | 手順 | 送信元 → 送信先 | 動作 |
 |---|---|---|
-| 1 | ブラウザ → CloudFront | HTTPS／WSSで接続する。CloudFront FunctionがBasic認証を行う。 |
+| 1 | ブラウザ → CloudFront | HTTPSで接続する。CloudFront FunctionがBasic認証を行う。 |
 | 2 | CloudFront → S3 | OACを使用して非公開S3からReactの静的ファイルを配信する。 |
-| 3 | React → CloudFront → AppSync Events | `/sessions/{sessionId}`を購読し、`/commands/{sessionId}`へ開始イベントを送る。 |
-| 4 | AppSync Events → Lambda Authorizer | CloudFrontから付与されたオリジン確認用ヘッダーを検証する。 |
+| 3 | React → Cognito | メールアドレスとパスワードでログインし、JWTを取得する。 |
+| 4 | React → AppSync Events | Cognito認証で`/sessions/{sessionId}`を購読し、`/commands/{sessionId}`へ開始イベントを送る。 |
 | 5 | AppSync Events → 開始Lambda | `onPublish`から`EVENT`モードで開始Lambdaを呼び出す。 |
 | 6 | 開始Lambda → AgentCore Runtime | `sessionId`を指定して`InvokeAgentRuntime`を呼び出す。 |
 | 7 | AgentCore Runtime → AppSync Events → React | IAM認証で出力・完了イベントを発行し、既存のWebSocket接続からReactへ配信する。 |
 
 ## 認証
 
-- CloudFront FunctionがReact配信とWebSocket接続の初回HTTPリクエストをBasic認証する。
-- CloudFrontがAppSync向けリクエストへオリジン確認用ヘッダーを付与する。
-- Lambda Authorizerがオリジン確認用ヘッダーを検証する。
+- CloudFront FunctionがReact配信をBasic認証する。
+- Cognito User PoolがReactのユーザーを認証する。
+- AppSync EventsがCognitoのJWTを検証し、送信と購読を許可する。
 - AgentCore RuntimeからAppSync Eventsへのイベント発行にはIAM認証を使用する。
 
 ## チャネル

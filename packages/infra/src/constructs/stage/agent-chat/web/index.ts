@@ -7,17 +7,14 @@ import type * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import { Construct } from "constructs";
 
 export type WebProps = {
-  appSyncHttpHost: string;
-  appSyncRealtimeDns: string;
   awsRegion: string;
   basicAuthValue: string;
   eventApiHttpEndpoint: string;
-  originVerifyValue: string;
   userPoolId: string;
   webUserPoolClientId: string;
 };
 
-/** 第1 MVPのReact配信リソースとAppSync WebSocket経路を作成する。 */
+/** 第1 MVPのReact配信リソースと実行時設定を作成する。 */
 export class Web extends Construct {
   readonly distribution: cloudfront.Distribution;
   readonly url: string;
@@ -31,17 +28,12 @@ export class Web extends Construct {
       props.basicAuthValue,
     );
     const distribution = createWebDistribution(this, {
-      appSyncRealtimeDns: props.appSyncRealtimeDns,
       basicAuthFunction,
       bucket,
-      originVerifyValue: props.originVerifyValue,
     });
     const configContent = buildWebConfigContent({
-      appSyncHttpHost: props.appSyncHttpHost,
-      appSyncRealtimePath: "/event/realtime",
       awsRegion: props.awsRegion,
       eventApiHttpEndpoint: props.eventApiHttpEndpoint,
-      lambdaAuthorizationToken: "mvp1",
       userPoolId: props.userPoolId,
       webUserPoolClientId: props.webUserPoolClientId,
     });

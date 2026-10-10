@@ -2,12 +2,11 @@
 
 ## 目的
 
-第1 MVPのAWS構成を基礎として、ローカルで一連の処理を実行できる開発環境と、Cognitoによるユーザー認証を追加する。
+第1 MVPのAWS構成を基礎として、ローカルで一連の処理を実行できる開発環境を追加する。
 
 ## 対象
 
 - React、Lambda想定サーバー、AgentCore想定サーバーによるローカル一連実行
-- Cognitoを使用したAWS環境のユーザー認証
 
 ## ローカル構成
 
@@ -43,21 +42,8 @@
 8. Lambda想定サーバーが購読中のReactへイベントを配信する。
 9. Reactが受信内容と完了状態を表示する。
 
-## AWS認証構成
-
-- Cognito User Poolでユーザーを管理する。
-- ReactがCognitoへログインしてJWTを取得する。
-- ReactはJWTを使用してAppSync Eventsへ接続する。
-- AppSync Eventsはブラウザからの送信と購読をCognito認証で許可する。
-- Lambda AuthorizerはCloudFront経由であることを確認する。
-- AgentCoreからAppSync Eventsへのイベント発行にはIAM認証を使用する。
-- CloudFront FunctionのBasic認証はCDKの設定でCognito構成へ切り替える。
-
 ## 完了条件
 
 - 3つのローカルプロセスを起動して、一連の処理を実行できる。
 - ローカルのReactから開始した処理のイベントがWebSocketで画面へ届く。
 - ローカルとAWSで同じイベント形式とセッションIDを使用できる。
-- CognitoのユーザーがReactへログインできる。
-- Cognito認証を使用してAppSync Eventsへ送信・購読できる。
-- AgentCoreがIAM認証を使用してAppSync Eventsへイベントを発行できる。

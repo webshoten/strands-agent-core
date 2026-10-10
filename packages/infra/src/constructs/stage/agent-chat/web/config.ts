@@ -1,9 +1,6 @@
 export type WebRuntimeConfig = {
-  appSyncHttpHost: string;
-  appSyncRealtimePath: string;
   awsRegion: string;
   eventApiHttpEndpoint: string;
-  lambdaAuthorizationToken: string;
   userPoolId: string;
   webUserPoolClientId: string;
 };

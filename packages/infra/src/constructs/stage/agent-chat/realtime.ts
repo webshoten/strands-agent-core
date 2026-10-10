@@ -1,12 +1,7 @@
 import type { AgentCoreRuntime } from "@infra/constructs/stage/agent-chat/agentcore.ts";
-import {
-  createAuthorizerFunction,
-  createStartAgentFunction,
-} from "@infra/constructs/stage/agent-chat/functions.ts";
-import { Duration } from "aws-cdk-lib";
+import { createStartAgentFunction } from "@infra/constructs/stage/agent-chat/functions.ts";
 import * as appsync from "aws-cdk-lib/aws-appsync";
 import type * as cognito from "aws-cdk-lib/aws-cognito";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
 
 export type RealtimeProps = {
@@ -16,37 +11,14 @@ export type RealtimeProps = {
 /** AppSync Eventsの認証、開始Lambda、AgentCore向けチャネルを構成する。 */
 export class Realtime extends Construct {
   readonly eventApi: appsync.EventApi;
-  readonly originVerifyValue: string;
 
   constructor(scope: Construct, id: string, props: RealtimeProps) {
     super(scope, id);
 
-    const originVerifySecret = new secretsmanager.Secret(
-      this,
-      "OriginVerifySecret",
-      {
-        description: "CloudFront to AppSync origin verification value",
-        generateSecretString: {
-          excludePunctuation: true,
-          passwordLength: 48,
-        },
-      },
-    );
-    const originVerifyValue = originVerifySecret.secretValue.unsafeUnwrap();
-    const authorizer = createAuthorizerFunction(this, {
-      originVerifyValue,
-    });
     const eventApi = new appsync.EventApi(this, "EventApi", {
       apiName: "strands-agentcore-mvp",
       authorizationConfig: {
         authProviders: [
-          {
-            authorizationType: appsync.AppSyncAuthorizationType.LAMBDA,
-            lambdaAuthorizerConfig: {
-              handler: authorizer,
-              resultsCacheTtl: Duration.seconds(0),
-            },
-          },
           {
             authorizationType: appsync.AppSyncAuthorizationType.USER_POOL,
             cognitoConfig: {
@@ -55,24 +27,18 @@ export class Realtime extends Construct {
           },
           { authorizationType: appsync.AppSyncAuthorizationType.IAM },
         ],
-        connectionAuthModeTypes: [
-          appsync.AppSyncAuthorizationType.LAMBDA,
-          appsync.AppSyncAuthorizationType.USER_POOL,
-        ],
+        connectionAuthModeTypes: [appsync.AppSyncAuthorizationType.USER_POOL],
         defaultPublishAuthModeTypes: [
-          appsync.AppSyncAuthorizationType.LAMBDA,
           appsync.AppSyncAuthorizationType.USER_POOL,
           appsync.AppSyncAuthorizationType.IAM,
         ],
         defaultSubscribeAuthModeTypes: [
-          appsync.AppSyncAuthorizationType.LAMBDA,
           appsync.AppSyncAuthorizationType.USER_POOL,
         ],
       },
     });
 
     this.eventApi = eventApi;
-    this.originVerifyValue = originVerifyValue;
   }
 
   /** 開始LambdaとチャネルをAgentCore Runtimeへ接続する。 */
@@ -88,14 +54,8 @@ export class Realtime extends Construct {
     );
     this.eventApi.addChannelNamespace("CommandsNamespace", {
       authorizationConfig: {
-        publishAuthModeTypes: [
-          appsync.AppSyncAuthorizationType.LAMBDA,
-          appsync.AppSyncAuthorizationType.USER_POOL,
-        ],
-        subscribeAuthModeTypes: [
-          appsync.AppSyncAuthorizationType.LAMBDA,
-          appsync.AppSyncAuthorizationType.USER_POOL,
-        ],
+        publishAuthModeTypes: [appsync.AppSyncAuthorizationType.USER_POOL],
+        subscribeAuthModeTypes: [appsync.AppSyncAuthorizationType.USER_POOL],
       },
       channelNamespaceName: "commands",
       publishHandlerConfig: {
@@ -109,10 +69,7 @@ export class Realtime extends Construct {
       {
         authorizationConfig: {
           publishAuthModeTypes: [appsync.AppSyncAuthorizationType.IAM],
-          subscribeAuthModeTypes: [
-            appsync.AppSyncAuthorizationType.LAMBDA,
-            appsync.AppSyncAuthorizationType.USER_POOL,
-          ],
+          subscribeAuthModeTypes: [appsync.AppSyncAuthorizationType.USER_POOL],
         },
         channelNamespaceName: "sessions",
       },

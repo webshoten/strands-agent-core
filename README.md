@@ -6,7 +6,7 @@ AWS上でReact、CloudFront、AppSync Events、Lambda、Bedrock AgentCore Runtim
 
 - `packages/infra`: AWS CDK（TypeScript）
 - `packages/web`: React + Vite
-- `packages/functions`: AppSync Lambda Authorizer、開始Lambda
+- `packages/functions`: AppSync EventsからAgentCoreを呼び出す開始Lambda
 - `packages/shared`: フロントエンドとLambdaで共有するイベント型
 - `packages/agentcore`: AgentCore SDK + Strands（Python）
 - `docs/mvp1`: 第1 MVPの仕様書とアーキテクチャ図
