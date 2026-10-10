@@ -32,3 +32,13 @@ pnpm --filter @strands/infra cdk deploy
 初回はデプロイ前に `pnpm --filter @strands/infra cdk bootstrap` を実行します。
 
 デプロイ後、CloudFormation出力の `WebUrl` をブラウザで開きます。
+
+## 認証ユーザー
+
+メールアドレスとパスワードを引数で渡し、Cognitoユーザーを作成します。同じメールアドレスで再実行した場合は、既存ユーザーの属性とパスワードを更新します。
+
+```sh
+pnpm cognito:user -m "test@example.com" -p "Password123!"
+```
+
+異なるStack名でデプロイした場合は、`STACK_NAME`も指定します。

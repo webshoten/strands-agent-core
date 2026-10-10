@@ -9,6 +9,7 @@
     "build": "pnpm --filter @strands/shared build && pnpm --filter @strands/web build && pnpm --filter @strands/agentcore build",
     "build:agentcore": "pnpm --filter @strands/agentcore build",
     "build:web": "pnpm --filter @strands/web build",
+    "cognito:user": "bash packages/infra/scripts/upsert-cognito-user.sh",
     "synth": "pnpm build && pnpm --filter @strands/infra cdk synth",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck"
