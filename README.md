@@ -38,7 +38,7 @@ pnpm --filter @strands/infra cdk deploy
 メールアドレスとパスワードを引数で渡し、Cognitoユーザーを作成します。同じメールアドレスで再実行した場合は、既存ユーザーの属性とパスワードを更新します。
 
 ```sh
-pnpm cognito:user -m "test@example.com" -p "Password123!"
+pnpm cognito:user -m test@example.com -p Password123@
 ```
 
 異なるStack名でデプロイした場合は、`STACK_NAME`も指定します。

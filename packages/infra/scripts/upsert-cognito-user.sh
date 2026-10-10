@@ -35,10 +35,15 @@ if [[ -z "$cognito_user_password" ]]; then
   exit 1
 fi
 
-if [[ "$cognito_user_email" == *[“”‘’]* || "$cognito_user_password" == *[“”‘’]* ]]; then
-  echo "Use straight quotes (' or \"), not curly quotes (“ ” or ‘ ’)" >&2
-  exit 1
-fi
+cognito_user_email="${cognito_user_email#“}"
+cognito_user_email="${cognito_user_email#‘}"
+cognito_user_email="${cognito_user_email%”}"
+cognito_user_email="${cognito_user_email%’}"
+
+cognito_user_password="${cognito_user_password#“}"
+cognito_user_password="${cognito_user_password#‘}"
+cognito_user_password="${cognito_user_password%”}"
+cognito_user_password="${cognito_user_password%’}"
 
 user_pool_id="$(
   aws cloudformation describe-stacks \
