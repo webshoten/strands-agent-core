@@ -1,0 +1,23 @@
+{
+  "name": "strands-agentcore-mvp",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "biome:check": "pnpm exec biome check .",
+    "biome:check-write": "pnpm exec biome check --write .",
+    "build": "pnpm --filter @strands/shared build && pnpm --filter @strands/web build && pnpm --filter @strands/agentcore build",
+    "build:agentcore": "pnpm --filter @strands/agentcore build",
+    "build:web": "pnpm --filter @strands/web build",
+    "synth": "pnpm build && pnpm --filter @strands/infra cdk synth",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "@strands/agentcore",
+  "private": true,
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "typecheck": "python3 -m compileall -q src"
+  }
+}
