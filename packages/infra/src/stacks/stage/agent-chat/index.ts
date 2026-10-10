@@ -1,6 +1,6 @@
 import { AgentChat } from "@infra/constructs/stage/agent-chat/index.ts";
 import { publishAgentChatParameters } from "@infra/stacks/stage/agent-chat/parameters.ts";
-import { CfnOutput, CfnParameter, Stack, type StackProps } from "aws-cdk-lib";
+import { CfnOutput, Stack, type StackProps } from "aws-cdk-lib";
 import type { Construct } from "constructs";
 
 export type AgentChatStackProps = StackProps & {
@@ -13,15 +13,8 @@ export class AgentChatStack extends Stack {
   constructor(scope: Construct, id: string, props: AgentChatStackProps) {
     super(scope, id, props);
 
-    const basicAuthValue = new CfnParameter(this, "BasicAuthValue", {
-      description: "Complete HTTP Basic Authorization header value",
-      noEcho: true,
-      type: "String",
-    });
-
     const agentChat = new AgentChat(this, "AgentChat", {
       awsRegion: this.region,
-      basicAuthValue: basicAuthValue.valueAsString,
     });
 
     publishAgentChatParameters(this, {

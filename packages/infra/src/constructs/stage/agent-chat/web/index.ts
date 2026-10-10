@@ -1,4 +1,3 @@
-import { createBasicAuthFunction } from "@infra/constructs/stage/agent-chat/web/basic-auth-function.ts";
 import { createWebBucket } from "@infra/constructs/stage/agent-chat/web/bucket.ts";
 import { buildWebConfigContent } from "@infra/constructs/stage/agent-chat/web/config.ts";
 import { createWebDeployment } from "@infra/constructs/stage/agent-chat/web/deployment.ts";
@@ -8,7 +7,6 @@ import { Construct } from "constructs";
 
 export type WebProps = {
   awsRegion: string;
-  basicAuthValue: string;
   eventApiHttpEndpoint: string;
   userPoolId: string;
   webUserPoolClientId: string;
@@ -23,14 +21,7 @@ export class Web extends Construct {
     super(scope, id);
 
     const bucket = createWebBucket(this);
-    const basicAuthFunction = createBasicAuthFunction(
-      this,
-      props.basicAuthValue,
-    );
-    const distribution = createWebDistribution(this, {
-      basicAuthFunction,
-      bucket,
-    });
+    const distribution = createWebDistribution(this, bucket);
     const configContent = buildWebConfigContent({
       awsRegion: props.awsRegion,
       eventApiHttpEndpoint: props.eventApiHttpEndpoint,

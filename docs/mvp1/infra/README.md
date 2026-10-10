@@ -13,7 +13,6 @@ CloudFrontからReactを配信し、CognitoでログインしたReactがAppSync 
 
 - React：開始操作、セッションチャネルの購読、受信イベントの表示
 - CloudFront：Reactの静的ファイル配信
-- CloudFront Function：Basic認証
 - 非公開S3：Reactの静的ファイル保存
 - Cognito User Pool：Reactのユーザー認証
 - AppSync Events：開始イベントの受付とWebSocket配信
@@ -24,7 +23,7 @@ CloudFrontからReactを配信し、CognitoでログインしたReactがAppSync 
 
 | 手順 | 送信元 → 送信先 | 動作 |
 |---|---|---|
-| 1 | ブラウザ → CloudFront | HTTPSで接続する。CloudFront FunctionがBasic認証を行う。 |
+| 1 | ブラウザ → CloudFront | HTTPSで接続する。 |
 | 2 | CloudFront → S3 | OACを使用して非公開S3からReactの静的ファイルを配信する。 |
 | 3 | React → Cognito | メールアドレスとパスワードでログインし、JWTを取得する。 |
 | 4 | React → AppSync Events | Cognito認証で`/sessions/{sessionId}`を購読し、`/commands/{sessionId}`へ開始イベントを送る。 |
@@ -34,7 +33,6 @@ CloudFrontからReactを配信し、CognitoでログインしたReactがAppSync 
 
 ## 認証
 
-- CloudFront FunctionがReact配信をBasic認証する。
 - Cognito User PoolがReactのユーザーを認証する。
 - AppSync EventsがCognitoのJWTを検証し、送信と購読を許可する。
 - AgentCore RuntimeからAppSync Eventsへのイベント発行にはIAM認証を使用する。

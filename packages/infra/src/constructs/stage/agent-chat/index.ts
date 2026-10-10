@@ -6,7 +6,6 @@ import { Construct } from "constructs";
 
 export type AgentChatProps = {
   awsRegion: string;
-  basicAuthValue: string;
 };
 
 /** Agent Chatを構成する認証、リアルタイム通信、実行環境、Web配信を接続する。 */
@@ -34,7 +33,6 @@ export class AgentChat extends Construct {
     const eventApiHttpEndpoint = `https://${realtime.eventApi.httpDns}/event`;
     const web = new Web(this, "Web", {
       awsRegion: props.awsRegion,
-      basicAuthValue: props.basicAuthValue,
       eventApiHttpEndpoint,
       userPoolId: auth.userPool.userPoolId,
       webUserPoolClientId: auth.webUserPoolClient.userPoolClientId,

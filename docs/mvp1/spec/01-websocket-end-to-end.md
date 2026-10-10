@@ -13,12 +13,11 @@
 - 処理開始：AWS Lambda
 - エージェント実行環境：Bedrock AgentCore Runtime
 - AgentCoreアプリケーション：Python、AgentCore SDK、Strands Agents
-- 認証：CloudFront FunctionによるBasic認証、Cognito User Pool
+- 認証：Cognito User Pool
 
 ## AWS構成
 
 - CloudFrontは非公開S3に保存したReactの静的ファイルを配信する。
-- CloudFront Functionは各リクエストのBasic認証を行う。
 - Cognito User PoolはReactのユーザーを認証する。
 - ReactはAmplifyを使用し、Cognito認証でAppSync Eventsへ直接接続する。
 - AppSync EventsはCognitoのJWTを検証する。
@@ -31,7 +30,7 @@
 
 ## 処理フロー
 
-1. ブラウザがCloudFrontへアクセスし、Basic認証を行う。
+1. ブラウザがCloudFrontへアクセスする。
 2. CloudFrontがS3からReactを配信する。
 3. ReactがCognitoへログインする。
 4. ReactがCognito認証でAppSync Eventsの`/sessions/{sessionId}`をWebSocket購読する。
@@ -79,7 +78,7 @@
 
 ## フロントエンド
 
-- Basic認証後にCognitoのログイン画面を表示する。
+- Reactの起動後にCognitoのログイン画面を表示する。
 - Cognitoへのログイン後にMVP画面を表示する。
 - 開始ボタンで新しい`sessionId`を生成する。
 - 受信した`Hello World`を受信順に表示する。
@@ -93,7 +92,6 @@
 
 - CDKでAWSリソース一式をデプロイできる。
 - CloudFrontのURLからReact画面を表示できる。
-- Basic認証がReact配信に適用される。
 - CognitoのユーザーがReactへログインできる。
 - Cognito認証を使用してAppSync Eventsへ送信・購読できる。
 - 開始ボタンからAgentCore Runtimeまで処理が到達する。

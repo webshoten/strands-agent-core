@@ -24,14 +24,11 @@ pnpm synth
 
 ## デプロイ
 
-Basic認証値には `Basic ` と `user:password` のBase64文字列を連結した値を渡します。
-
 ```sh
-pnpm --filter @strands/infra cdk bootstrap
-export BASIC_AUTH_VALUE="Basic $(printf '%s' 'user:password' | base64)"
 pnpm build
-pnpm --filter @strands/infra cdk deploy \
-  --parameters BasicAuthValue="$BASIC_AUTH_VALUE"
+pnpm --filter @strands/infra cdk deploy
 ```
+
+初回はデプロイ前に `pnpm --filter @strands/infra cdk bootstrap` を実行します。
 
 デプロイ後、CloudFormation出力の `WebUrl` をブラウザで開きます。
