@@ -10,6 +10,8 @@
     "build:agentcore": "pnpm --filter @strands/agentcore build",
     "build:web": "pnpm --filter @strands/web build",
     "cognito:user": "bash packages/infra/scripts/upsert-cognito-user.sh",
+    "local:config": "bash scripts/load-local-config.sh",
+    "local:setup": "bash scripts/setup-local.sh",
     "synth": "pnpm build && pnpm --filter @strands/infra cdk synth",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck"

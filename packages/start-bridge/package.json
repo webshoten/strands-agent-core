@@ -1,0 +1,21 @@
+{
+  "name": "@strands/start-bridge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --import tsx src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-crypto/sha256-js": "5.2.0",
+    "@aws-sdk/credential-providers": "^3.1149.0",
+    "@smithy/protocol-http": "^5.6.2",
+    "@smithy/signature-v4": "5.7.4",
+    "@strands/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

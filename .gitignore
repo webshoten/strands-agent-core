@@ -3,6 +3,7 @@ dist/
 cdk.out/
 .DS_Store
 .env
+.local/
 .venv/
 __pycache__/
 *.pyc
@@ -10,4 +11,6 @@ __pycache__/
 packages/agentcore/build/
 packages/agentcore/deployment-package.zip
 packages/agentcore/.uv-cache/
+packages/agentcore/.uv-python/
 packages/agentcore/wheelhouse/
+packages/web/public/config.js

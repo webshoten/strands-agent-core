@@ -7,6 +7,7 @@ test("Reactの実行時設定をconfig.jsとして生成する", () => {
     awsRegion: "ap-northeast-1",
     eventApiHttpEndpoint:
       "https://example.appsync-api.ap-northeast-1.amazonaws.com/event",
+    startChannelNamespace: "commands",
     userPoolId: "ap-northeast-1_example",
     webUserPoolClientId: "web-client-id",
   });
@@ -14,4 +15,5 @@ test("Reactの実行時設定をconfig.jsとして生成する", () => {
   assert.match(content, /^window\.__STRANDS_CONFIG__=/);
   assert.match(content, /ap-northeast-1_example/);
   assert.match(content, /appsync-api/);
+  assert.match(content, /commands/);
 });

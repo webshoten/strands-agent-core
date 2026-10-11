@@ -15,6 +15,7 @@ export class AgentChatStack extends Stack {
 
     const agentChat = new AgentChat(this, "AgentChat", {
       awsRegion: this.region,
+      stage: props.stage,
     });
 
     publishAgentChatParameters(this, {

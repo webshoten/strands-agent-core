@@ -8,6 +8,7 @@ import { Construct } from "constructs";
 export type WebProps = {
   awsRegion: string;
   eventApiHttpEndpoint: string;
+  startChannelNamespace: string;
   userPoolId: string;
   webUserPoolClientId: string;
 };
@@ -25,6 +26,7 @@ export class Web extends Construct {
     const configContent = buildWebConfigContent({
       awsRegion: props.awsRegion,
       eventApiHttpEndpoint: props.eventApiHttpEndpoint,
+      startChannelNamespace: props.startChannelNamespace,
       userPoolId: props.userPoolId,
       webUserPoolClientId: props.webUserPoolClientId,
     });

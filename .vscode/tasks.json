@@ -1,0 +1,42 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Local: Setup",
+      "type": "shell",
+      "command": "pnpm local:setup",
+      "problemMatcher": []
+    },
+    {
+      "label": "Local: Load Config",
+      "type": "shell",
+      "command": "pnpm local:config",
+      "options": {
+        "env": {
+          "STRANDS_AWS_PROFILE": "${config:strands.awsProfile}",
+          "STRANDS_AWS_REGION": "${config:strands.awsRegion}",
+          "STRANDS_SHARED_ENV": "${config:strands.sharedEnv}",
+          "STRANDS_STAGE": "${config:strands.stage}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Local: Web Server",
+      "type": "shell",
+      "command": "pnpm --filter @strands/web dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Local:.*http://localhost:5173"
+        }
+      }
+    }
+  ]
+}

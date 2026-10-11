@@ -6,6 +6,7 @@ import { Construct } from "constructs";
 
 export type AgentChatProps = {
   awsRegion: string;
+  stage: string;
 };
 
 /** Agent Chatを構成する認証、リアルタイム通信、実行環境、Web配信を接続する。 */
@@ -22,6 +23,7 @@ export class AgentChat extends Construct {
     const auth = new Auth(this, "Auth");
 
     const realtime = new Realtime(this, "Realtime", {
+      enableLocalDevelopment: props.stage === "dev",
       userPool: auth.userPool,
     });
 
@@ -34,6 +36,7 @@ export class AgentChat extends Construct {
     const web = new Web(this, "Web", {
       awsRegion: props.awsRegion,
       eventApiHttpEndpoint,
+      startChannelNamespace: "commands",
       userPoolId: auth.userPool.userPoolId,
       webUserPoolClientId: auth.webUserPoolClient.userPoolClientId,
     });

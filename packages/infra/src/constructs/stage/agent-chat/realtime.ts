@@ -5,6 +5,7 @@ import type * as cognito from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 
 export type RealtimeProps = {
+  enableLocalDevelopment: boolean;
   userPool: cognito.IUserPool;
 };
 
@@ -27,7 +28,10 @@ export class Realtime extends Construct {
           },
           { authorizationType: appsync.AppSyncAuthorizationType.IAM },
         ],
-        connectionAuthModeTypes: [appsync.AppSyncAuthorizationType.USER_POOL],
+        connectionAuthModeTypes: [
+          appsync.AppSyncAuthorizationType.USER_POOL,
+          appsync.AppSyncAuthorizationType.IAM,
+        ],
         defaultPublishAuthModeTypes: [
           appsync.AppSyncAuthorizationType.USER_POOL,
           appsync.AppSyncAuthorizationType.IAM,
@@ -39,6 +43,16 @@ export class Realtime extends Construct {
     });
 
     this.eventApi = eventApi;
+
+    if (props.enableLocalDevelopment) {
+      eventApi.addChannelNamespace("LocalCommandsNamespace", {
+        authorizationConfig: {
+          publishAuthModeTypes: [appsync.AppSyncAuthorizationType.USER_POOL],
+          subscribeAuthModeTypes: [appsync.AppSyncAuthorizationType.IAM],
+        },
+        channelNamespaceName: "local-commands",
+      });
+    }
   }
 
   /** 開始LambdaとチャネルをAgentCore Runtimeへ接続する。 */

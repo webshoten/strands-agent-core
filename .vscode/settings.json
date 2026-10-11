@@ -8,6 +8,11 @@
   },
   "biome.configurationPath": "biome.json",
   "prettier.enable": false,
+  "python.defaultInterpreterPath": "${workspaceFolder}/packages/agentcore/.venv/bin/python",
+  "strands.awsProfile": "default",
+  "strands.awsRegion": "ap-northeast-1",
+  "strands.sharedEnv": "-",
+  "strands.stage": "dev",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.tsdk": "node_modules/typescript/lib"
 }

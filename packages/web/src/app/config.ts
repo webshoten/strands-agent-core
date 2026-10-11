@@ -1,6 +1,7 @@
 export type WebConfig = {
   awsRegion: string;
   eventApiHttpEndpoint: string;
+  startChannelNamespace: string;
   userPoolId: string;
   webUserPoolClientId: string;
 };

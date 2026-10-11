@@ -1,3 +1,4 @@
+import { useConfig } from "@/app/contexts/config-context.tsx";
 import { SessionConsole } from "@/domains/session/components/session-console.tsx";
 import { SessionHeader } from "@/domains/session/components/session-header.tsx";
 import { useSessionSubscription } from "@/domains/session/contexts/session-subscription-context.tsx";
@@ -6,6 +7,7 @@ import { publishStartEvent } from "@/domains/session/services/start-event-publis
 
 /** 第1 MVPのセッション開始画面を表示する。 */
 export function SessionPage() {
+  const config = useConfig();
   const { subscribe, unsubscribe } = useSessionSubscription();
 
   const session = useSession();
@@ -16,7 +18,10 @@ export function SessionPage() {
 
     try {
       await subscribe(sessionId, session.receiveEvent, session.fail);
-      await publishStartEvent({ type: "start", sessionId });
+      await publishStartEvent(config.startChannelNamespace, {
+        type: "start",
+        sessionId,
+      });
     } catch (error) {
       unsubscribe();
       session.fail(error);

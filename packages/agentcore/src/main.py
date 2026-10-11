@@ -34,7 +34,7 @@ def publish_event(channel: str, event: dict[str, object]) -> None:
         },
     )
 
-    """AWS署名を行なってAppSyncへHTTPリクエストする"""
+    # ローカル実行ではAWSプロファイル、AgentCoreでは実行ロールを使用する。
     credentials = boto3.Session().get_credentials()
     if credentials is None:
         raise RuntimeError("AWS credentials are unavailable")
@@ -60,8 +60,7 @@ def run_session(session_id: str, task_id: str) -> None:
     """Strandsを実行し、結果をセッションのチャネルへ送信する。"""
     channel = f"/sessions/{session_id}"
     try:
-
-        """エージェントに送信しつつ2秒おきにHelloWorldを4回送る"""
+        # Strandsの応答を同じセッションへ一定間隔で送る。
         agent = Agent()
         result = agent("Reply with exactly: Hello World")
         message_text = str(result).strip() or "Hello World"

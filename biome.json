@@ -15,8 +15,10 @@
       "!!**/cdk.out",
       "!!**/coverage",
       "!!**/.uv-cache",
+      "!!**/.uv-python",
       "!!**/.venv",
-      "!!**/wheelhouse"
+      "!!**/wheelhouse",
+      "!!packages/web/public/config.js"
     ]
   },
   "formatter": {

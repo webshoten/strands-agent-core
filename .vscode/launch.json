@@ -1,0 +1,55 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Local: Web",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/packages/web/src",
+      "preLaunchTask": "Local: Web Server"
+    },
+    {
+      "name": "Local: Start Bridge",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--watch", "--import", "tsx"],
+      "program": "${workspaceFolder}/packages/start-bridge/src/main.ts",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.local/runtime.env",
+      "autoAttachChildProcesses": true,
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Local: Agent",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "main:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8080",
+        "--reload",
+        "--reload-dir",
+        "${workspaceFolder}/packages/agentcore/src"
+      ],
+      "cwd": "${workspaceFolder}/packages/agentcore/src",
+      "python": "${workspaceFolder}/packages/agentcore/.venv/bin/python",
+      "envFile": "${workspaceFolder}/.local/runtime.env",
+      "subProcess": true,
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Local: All",
+      "configurations": ["Local: Web", "Local: Start Bridge", "Local: Agent"],
+      "preLaunchTask": "Local: Load Config",
+      "stopAll": true
+    }
+  ]
+}
